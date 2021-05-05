@@ -49,6 +49,9 @@ VkResult App::init()
     // Query memory properties of physical devices
     if (result == VK_SUCCESS) result = queryPhysicalDeviceMemoryProperties();
 
+    // Query queue familty properties of physical devices
+    if (result == VK_SUCCESS) queryPhysicalDeviceQueueFamilyProperties();
+
     return result;
 }
 
@@ -172,4 +175,36 @@ VkResult App::queryPhysicalDeviceMemoryProperties()
     }
 
     return result;
+}
+
+void App::queryPhysicalDeviceQueueFamilyProperties()
+{
+    // Query queue familty properties of physical devices
+
+    // typedef struct VkQueueFamilyProperties {                 // identical queues with same caps and able to run in parallel
+    //    VkQueueFlags queueFlags;                              // overall caps of queue
+    //    uint32_t queueCount;                                  // number of queues in family (1 or more)
+    //    uint32_t timestampValidBits;                          // number of valid bits when timestamps taken from queue
+    //    VkExtent3D minImageTransferGranularity;               // units to support image transfers (may not support)
+    //} VkQueueFamilyProperties;
+
+    const size_t len{ mPhysicalDevices.size() };
+    mQueueFamilyProperties.resize(len);
+    uint32_t queueFamilyPropertyCount{ 0u };
+
+    for (size_t i{ 0u }; i < len; ++i)
+    {
+        vkGetPhysicalDeviceQueueFamilyProperties(   // discover number of queue families supported by physical device
+            mPhysicalDevices[i],                    // VkPhysicalDevice physicalDevice,             // handle to physical device
+            &queueFamilyPropertyCount,              // uint32_t * pQueueFamilyPropertyCount,        // output - get number of queue families
+            nullptr                                 // VkQueueFamilyProperties * pQueueFamilyProperties // nullptr
+        );
+        mQueueFamilyProperties[i].resize(queueFamilyPropertyCount);
+
+        vkGetPhysicalDeviceQueueFamilyProperties(   // get properties of device queue families
+            mPhysicalDevices[i],                    // VkPhysicalDevice physicalDevice,             // handle to physical device
+            &queueFamilyPropertyCount,              // uint32_t * pQueueFamilyPropertyCount,        // input - provide number of queue families
+            mQueueFamilyProperties[i].data()        // VkQueueFamilyProperties * pQueueFamilyProperties // array of structures to fill
+        );
+    }
 }
