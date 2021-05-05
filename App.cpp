@@ -40,10 +40,46 @@ VkResult App::init()
         );
     }
 
+    // Query physical devices
+    if (result == VK_SUCCESS) result = queryPhysicalDevices();
+
     return result;
 }
 
 void App::deinit()
 {
     vkDestroyInstance(mInstance, nullptr);
+}
+
+VkResult App::queryPhysicalDevices()
+{
+    // Query physical devices
+    // 1) discover all supported devices in the system
+    // 2) get handles to all physical devices in the system
+
+    VkResult result = VK_SUCCESS;
+
+    if (result == VK_SUCCESS)
+    {
+        uint32_t physicalDeviceCount{ 0u };
+
+        result = vkEnumeratePhysicalDevices(        // discover all supported devices in the system
+            mInstance,                              // VkInstance instance,                         // Vulkan instance created in vkCreateInstance
+            &physicalDeviceCount,                   // uint32_t * pPhysicalDeviceCount,             // output - get number of physical devices
+            nullptr                                 // VkPhysicalDevice * pPhysicalDevices);        // nullptr
+        );
+
+        if (result == VK_SUCCESS)
+        {
+            mPhysicalDevices.resize(physicalDeviceCount);
+
+            result = vkEnumeratePhysicalDevices(    // get handles to all physical devices in the system
+                mInstance,                          // VkInstance instance,                         // Vulkan instance created in vkCreateInstance
+                &physicalDeviceCount,               // uint32_t * pPhysicalDeviceCount,             // input - provide number of discovered physical devices in the system
+                &mPhysicalDevices[0]                // VkPhysicalDevice * pPhysicalDevices);        // array of handles to physical devices
+            );
+        }
+    }
+
+    return result;
 }
