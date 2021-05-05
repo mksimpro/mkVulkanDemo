@@ -44,6 +44,8 @@ VkResult App::init()
     if (result == VK_SUCCESS) result = queryPhysicalDevices();
     // Query properties of physical devices
     if (result == VK_SUCCESS) result = queryPhysicalDeviceProperties();
+    // Query features of physical devices
+    if (result == VK_SUCCESS) result = queryPhysicalDeviceFeatures();
 
     return result;
 }
@@ -112,6 +114,31 @@ VkResult App::queryPhysicalDeviceProperties()
         vkGetPhysicalDeviceProperties(              // fill structures describing all properties of physical device
             mPhysicalDevices[i],                    // VkPhysicalDevice physicalDevice,             // handle to physical device
             &mPhysicalDeviceProperties[i]           // VkPhysicalDeviceProperties * pProperties);   // structure to be filled with details on physical device properties
+        );
+    }
+
+    return result;
+}
+
+VkResult App::queryPhysicalDeviceFeatures()
+{
+    // Query features of physical devices
+
+    // typedef struct VkPhysicalDeviceFeatures {                // details on features of physical device
+    //    VkBool32    robustBufferAccess;                       // bool field marked if the feature is supported
+    //    ..
+    //} VkPhysicalDeviceFeatures;
+
+    VkResult result = VK_SUCCESS;
+
+    const size_t len{ mPhysicalDevices.size() };
+    mPhysicalDeviceFeatures.resize(len);
+
+    for (size_t i{ 0u }; i < len; ++i)
+    {
+        vkGetPhysicalDeviceFeatures(                // fill structures describing all features of physical device
+            mPhysicalDevices[i],                    // VkPhysicalDevice physicalDevice,             // handle to physical device
+            &mPhysicalDeviceFeatures[i]             // VkPhysicalDeviceFeatures* pFeatures);        // structure to be filled with details on physical device features
         );
     }
 
