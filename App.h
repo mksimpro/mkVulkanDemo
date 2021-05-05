@@ -6,7 +6,8 @@
 class App
 {
 public:
-	/// Initialize Vulkan Instance, query physical devices and their properties, features
+	/// Initialize Vulkan Instance,
+	/// query physical devices and their properties, features, memory properties
 	/// return initialization result
 	VkResult init();
 
@@ -16,10 +17,12 @@ private:
 	VkResult queryPhysicalDevices();
 	VkResult queryPhysicalDeviceProperties();
 	VkResult queryPhysicalDeviceFeatures();
+	VkResult queryPhysicalDeviceMemoryProperties();
 
 	VkInstance mInstance;
 	std::vector<VkPhysicalDevice> mPhysicalDevices;
 	std::vector<VkPhysicalDeviceProperties> mPhysicalDeviceProperties;
 	std::vector<VkPhysicalDeviceFeatures> mPhysicalDeviceFeatures;
+	std::vector<VkPhysicalDeviceMemoryProperties> mPhysicalDeviceMemoryProperties;
 };
 

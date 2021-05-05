@@ -46,6 +46,8 @@ VkResult App::init()
     if (result == VK_SUCCESS) result = queryPhysicalDeviceProperties();
     // Query features of physical devices
     if (result == VK_SUCCESS) result = queryPhysicalDeviceFeatures();
+    // Query memory properties of physical devices
+    if (result == VK_SUCCESS) result = queryPhysicalDeviceMemoryProperties();
 
     return result;
 }
@@ -139,6 +141,33 @@ VkResult App::queryPhysicalDeviceFeatures()
         vkGetPhysicalDeviceFeatures(                // fill structures describing all features of physical device
             mPhysicalDevices[i],                    // VkPhysicalDevice physicalDevice,             // handle to physical device
             &mPhysicalDeviceFeatures[i]             // VkPhysicalDeviceFeatures* pFeatures);        // structure to be filled with details on physical device features
+        );
+    }
+
+    return result;
+}
+
+VkResult App::queryPhysicalDeviceMemoryProperties()
+{
+    // Query memory properties of physical devices
+
+    // typedef struct VkPhysicalDeviceMemoryProperties {        // properties of device heaps and supported memory types
+    //    uint32_t memoryTypeCount;                             // number of memory types
+    //    VkMemoryType memoryTypes[VK_MAX_MEMORY_TYPES];        // memoryTypeCount number of structures
+    //    uint32_t memoryHeapCount;                             // number of heaps
+    //    VkMemoryHeap memoryHeaps[VK_MAX_MEMORY_HEAPS];        // memoryHeapCount number of structures
+    //} VkPhysicalDeviceMemoryProperties;
+
+    VkResult result = VK_SUCCESS;
+
+    const size_t len{ mPhysicalDevices.size() };
+    mPhysicalDeviceMemoryProperties.resize(len);
+
+    for (size_t i{ 0u }; i < len; ++i)
+    {
+        vkGetPhysicalDeviceMemoryProperties(        // fill structures describing all memory properties of physical device
+            mPhysicalDevices[i],                    // VkPhysicalDevice physicalDevice,             // handle to physical device
+            &mPhysicalDeviceMemoryProperties[i]     // VkPhysicalDeviceMemoryProperties* pMemoryProperties); // structure to be filled with details on physical device memory properties
         );
     }
 
