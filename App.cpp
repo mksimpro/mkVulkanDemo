@@ -42,6 +42,8 @@ VkResult App::init()
 
     // Query physical devices
     if (result == VK_SUCCESS) result = queryPhysicalDevices();
+    // Query properties of physical devices
+    if (result == VK_SUCCESS) result = queryPhysicalDeviceProperties();
 
     return result;
 }
@@ -79,6 +81,38 @@ VkResult App::queryPhysicalDevices()
                 &mPhysicalDevices[0]                // VkPhysicalDevice * pPhysicalDevices);        // array of handles to physical devices
             );
         }
+    }
+
+    return result;
+}
+
+VkResult App::queryPhysicalDeviceProperties()
+{
+    // Query properties of physical devices
+
+    // typedef struct VkPhysicalDeviceProperties {              // details on physical device
+    //    uint32_t apiVersion;                                  // highest version of Vulkan supported by device
+    //    uint32_t driverVersion;                               // driver version used to control device (vendor specific)
+    //    uint32_t vendorID;                                    // identify vendor
+    //    uint32_t deviceID;                                    // identify device
+    //    VkPhysicalDeviceType deviceType;                      // supported physical device types
+    //    char deviceName[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE];    // human readable name of device
+    //    uint8_t pipelineCacheUUID[VK_UUID_SIZE];              // used for pipeline caching
+    //    VkPhysicalDeviceLimits limits;                        // min and max limits for physical device
+    //    VkPhysicalDeviceSparseProperties sparseProperties;    // properties related to sparse textures
+    //} VkPhysicalDeviceProperties;
+
+    VkResult result = VK_SUCCESS;
+
+    const size_t len{ mPhysicalDevices.size() };
+    mPhysicalDeviceProperties.resize(len);
+
+    for (size_t i{ 0u }; i < len; ++i)
+    {
+        vkGetPhysicalDeviceProperties(              // fill structures describing all properties of physical device
+            mPhysicalDevices[i],                    // VkPhysicalDevice physicalDevice,             // handle to physical device
+            &mPhysicalDeviceProperties[i]           // VkPhysicalDeviceProperties * pProperties);   // structure to be filled with details on physical device properties
+        );
     }
 
     return result;
