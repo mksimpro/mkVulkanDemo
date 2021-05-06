@@ -1,4 +1,5 @@
 #include "App.h"
+#include <limits>
 
 VkResult App::init()
 {
@@ -52,12 +53,43 @@ VkResult App::init()
     // Query queue familty properties of physical devices
     if (result == VK_SUCCESS) queryPhysicalDeviceQueueFamilyProperties();
 
+    // Initialize logical device
+    if (result == VK_SUCCESS)
+    {
+        // NVIDIA GeForce GTX 1060
+        size_t physicalDeviceIndex{ 0u };
+
+        // Find queueFamilyIndex for input queueFlags
+
+        // queueFlags - combination of VkQueueFlagBits, where each flag means that queues in this family that supports or not the following :
+        // VK_QUEUE_GRAPHICS_BIT                    // graphics operations : drawing points, lines, triangles
+        // VK_QUEUE_COMPUTE_BIT                     // computer operations : e.g.dispatching compute shaders
+        // VK_QUEUE_TRANSFER_BIT                    // transfer operations : e.g.copying bufferand image contents
+        // VK_QUEUE_SPARSE_BINDING_BIT              // memory binding operations used to update sparse resources
+
+        VkQueueFlags queueFlags{ VK_QUEUE_GRAPHICS_BIT };
+        uint32_t queueFamilyIndex{ 0u };
+        if (!getQueueFamilyIndex(physicalDeviceIndex, queueFlags, queueFamilyIndex))
+            return VK_ERROR_UNKNOWN;
+
+        // Create logical device
+        result = createLogicalDevice(physicalDeviceIndex, queueFamilyIndex);
+    }
+
     return result;
 }
 
-void App::deinit()
+VkResult App::deinit()
 {
+    VkResult result = VK_SUCCESS;
+
+    result = vkDeviceWaitIdle(mDevice);
+    if (result == VK_SUCCESS)
+        vkDestroyDevice(mDevice, nullptr);
+
     vkDestroyInstance(mInstance, nullptr);
+
+    return result;
 }
 
 VkResult App::queryPhysicalDevices()
@@ -207,4 +239,61 @@ void App::queryPhysicalDeviceQueueFamilyProperties()
             mQueueFamilyProperties[i].data()        // VkQueueFamilyProperties * pQueueFamilyProperties // array of structures to fill
         );
     }
+}
+
+bool App::getQueueFamilyIndex(size_t physicalDeviceIndex, VkQueueFlags queueFlags, uint32_t& queueFamilyIndex)
+{
+    const auto& queueFamilyProperties = mQueueFamilyProperties[physicalDeviceIndex];
+    queueFamilyIndex = std::numeric_limits< uint32_t>::max();
+
+    for (uint32_t i{ 0u }; i < queueFamilyProperties.size(); ++i)
+        if (queueFamilyProperties[i].queueFlags & queueFlags)
+        {
+            queueFamilyIndex = i;
+            break;
+        }
+
+    return queueFamilyIndex == std::numeric_limits< uint32_t>::max() ? false : true;
+}
+
+VkResult App::createLogicalDevice(size_t physicalDeviceIndex, uint32_t queueFamilyIndex)
+{
+    // Initialize logical device
+    // 2) create device queue create info - VkDeviceQueueCreateInfo (queueFamilyIndex)
+    // 3) create device create info - VkDeviceCreateInfo (&VkDeviceQueueCreateInfo)
+    // 4) create device instance vkCreateDevice (&VkDeviceCreateInfo, &mDevice)
+    // 5) destroy VkDeviceQueueCreateInfo and VkDeviceCreateInfo
+
+    VkResult result = VK_SUCCESS;
+
+    const VkDeviceQueueCreateInfo deviceQueueCreateInfo = {
+        VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, // VkStructureType sType;                   // type of create device info structure
+        nullptr,                                // const void* pNext;                           // ptr to provide some version extensions, can be set to nullptr
+        0,                                      // VkDeviceCreateFlags flags;                   // 0 (no bits defined in current version of Vulkan)
+        queueFamilyIndex,                       // uint32_t queueFamilyIndex;                   // index to queues matching queueFlags
+        1,                                      // uint32_t queueCount;                         // input - number of queues to create in the family queueFamilyIndex
+        nullptr                                 // const float* pQueuePriorities;               // nullptr or ptr to array of floats representing priorities of queues
+    };
+
+    const VkDeviceCreateInfo deviceCreateInfo = {
+        VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,   // VkStructureType sType;                       // type of create device info structure
+        nullptr,                                // const void* pNext;                           // ptr to provide some version extensions, can be set to nullptr
+        0,                                      // VkDeviceCreateFlags flags;                   // 0 (no bits defined in current version of Vulkan)
+        1,                                      // uint32_t queueCreateInfoCount;               // number of structures in pQueueCreateInfos array
+        &deviceQueueCreateInfo,                 // const VkDeviceQueueCreateInfo* pQueueCreateInfos; // ptr to array of structures with queues specs
+        0,                                      // uint32_t enabledLayerCount;                  // let enable layers and extensions (can be 0)
+        nullptr,                                // const char* const* ppEnabledLayerNames;		// let enable layers and extensions (can be nullptr)
+        0,                                      // uint32_t enabledExtensionCount;              // let enable layers and extensions (can be 0)
+        nullptr,                                // const char* const* ppEnabledExtensionNames;  // let enable layers and extensions (can be nullptr)
+        &mPhysicalDeviceFeatures[physicalDeviceIndex] // const VkPhysicalDeviceFeatures* pEnabledFeatures; // ptr to structure with optional features (can be nullptr)
+    };
+
+    result = vkCreateDevice(                    // create logical device
+        mPhysicalDevices[physicalDeviceIndex],  // VkPhysicalDevice physicalDevice,             // handle to physical device
+        &deviceCreateInfo,                      // const VkDeviceCreateInfo * pCreateInfo,      // parameters describing logical device
+        nullptr,                                // const VkAllocationCallbacks * pAllocator,    // custom memory allocator
+        &mDevice                                // VkDevice * pDevice);                         // handle to logical device
+    );
+
+    return result;
 }
