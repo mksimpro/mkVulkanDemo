@@ -41,6 +41,8 @@ VkResult App::init()
         );
     }
 
+    // Query instance layers
+    if (result == VK_SUCCESS) result = queryInstanceLayerProperties();
     // Query physical devices
     if (result == VK_SUCCESS) result = queryPhysicalDevices();
     // Query properties of physical devices
@@ -88,6 +90,32 @@ VkResult App::deinit()
         vkDestroyDevice(mDevice, nullptr);
 
     vkDestroyInstance(mInstance, nullptr);
+
+    return result;
+}
+
+VkResult App::queryInstanceLayerProperties()
+{
+    // Query instance layers
+
+    VkResult result = VK_SUCCESS;
+
+    uint32_t propertyCount{ 0u };
+
+    result = vkEnumerateInstanceLayerProperties(    // discover available layers to instance on system
+        &propertyCount,                             // uint32_t * pPropertyCount,               // output - get number of layer properties
+        nullptr                                     // VkLayerProperties * pProperties);        // nullptr
+    );
+
+    if (result == VK_SUCCESS)
+    {
+        mInstanceLayerProperties.resize(propertyCount);
+
+        result = vkEnumerateInstanceLayerProperties( // discover available layers to instance on system
+            &propertyCount,                         // uint32_t * pPropertyCount,               // input - provide number of layer properties
+            mInstanceLayerProperties.data()         // VkLayerProperties * pProperties);        // array of structures to be filled with info about registered layers
+        );
+    }
 
     return result;
 }
