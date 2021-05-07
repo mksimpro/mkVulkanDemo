@@ -43,6 +43,8 @@ VkResult App::init()
 
     // Query instance layers
     if (result == VK_SUCCESS) result = queryInstanceLayerProperties();
+    // Query instance extensions
+    if (result == VK_SUCCESS) result = queryInstanceExtensionProperties();
     // Query physical devices
     if (result == VK_SUCCESS) result = queryPhysicalDevices();
     // Query physical device layers
@@ -116,6 +118,34 @@ VkResult App::queryInstanceLayerProperties()
         result = vkEnumerateInstanceLayerProperties( // discover available layers to instance on system
             &propertyCount,                         // uint32_t * pPropertyCount,               // input - provide number of layer properties
             mInstanceLayerProperties.data()         // VkLayerProperties * pProperties);        // array of structures to be filled with info about registered layers
+        );
+    }
+
+    return result;
+}
+
+VkResult App::queryInstanceExtensionProperties()
+{
+    // Query instance extensions
+
+    VkResult result = VK_SUCCESS;
+
+    uint32_t propertyCount{ 0u };
+
+    result = vkEnumerateInstanceExtensionProperties(// discover available extensions to instance on system
+        nullptr,                                    // const char* pLayerName,                  // nullptr or layer that might provide extensions
+        &propertyCount,                             // uint32_t * pPropertyCount,               // output - get number of layer properties
+        nullptr                                     // VkExtensionProperties * pProperties);    // nullptr
+    );
+
+    if (result == VK_SUCCESS)
+    {
+        mInstanceExtensionProperties.resize(propertyCount);
+
+        result = vkEnumerateInstanceExtensionProperties(// discover available extensions to instance on system
+            nullptr,                                    // const char* pLayerName,                  // nullptr or layer that might provide extensions
+            &propertyCount,                             // uint32_t * pPropertyCount,               // input - provide number of layer properties
+            mInstanceExtensionProperties.data()         // VkExtensionProperties * pProperties);    // array of structures to be filled on supported extensions
         );
     }
 

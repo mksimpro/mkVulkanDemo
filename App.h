@@ -8,7 +8,7 @@ class App
 public:
 	/// Initialize Vulkan Instance. Query physical devices and their
 	/// properties, features, memory properties, queue familty properties.
-	/// Query instance layers and device layers.
+	/// Query instance layers/extensions and device layers.
 	/// return initialization result
 	VkResult init();
 
@@ -16,6 +16,7 @@ public:
 	VkResult deinit();
 private:
 	VkResult queryInstanceLayerProperties();
+	VkResult queryInstanceExtensionProperties();
 	VkResult queryPhysicalDevices();
 	VkResult queryPhysicalDeviceLayerProperties();
 	VkResult queryPhysicalDeviceProperties();
@@ -28,6 +29,7 @@ private:
 
 	VkInstance mInstance;
 	std::vector<VkLayerProperties> mInstanceLayerProperties;
+	std::vector<VkExtensionProperties> mInstanceExtensionProperties;
 	std::vector<VkPhysicalDevice> mPhysicalDevices;
 	std::vector<std::vector<VkLayerProperties>> mPhysicalDeviceLayerProperties;
 	std::vector<VkPhysicalDeviceProperties> mPhysicalDeviceProperties;
