@@ -49,6 +49,8 @@ VkResult App::init()
     if (result == VK_SUCCESS) result = queryPhysicalDevices();
     // Query physical device layers
     if (result == VK_SUCCESS) result = queryPhysicalDeviceLayerProperties();
+    // Query physical device extensions
+    if (result == VK_SUCCESS) result = queryPhysicalDeviceExtensionProperties();
     // Query properties of physical devices
     if (result == VK_SUCCESS) result = queryPhysicalDeviceProperties();
     // Query features of physical devices
@@ -212,6 +214,47 @@ VkResult App::queryPhysicalDeviceLayerProperties()
                 mPhysicalDevices[i],                // physical device to query
                 &propertyCount,                     // uint32_t * pPropertyCount,                   // output - get number of layer properties
                 mPhysicalDeviceLayerProperties[i].data() // VkLayerProperties * pProperties);       // array of structures to be filled with info about registered layers
+            );
+
+            if (result != VK_SUCCESS)
+                break;
+        }
+        else
+            break;
+    }
+
+    return result;
+}
+
+VkResult App::queryPhysicalDeviceExtensionProperties()
+{
+    // Query device extension properties
+
+    VkResult result = VK_SUCCESS;
+
+    const size_t len{ mPhysicalDevices.size() };
+    mPhysicalDeviceExtensionProperties.resize(len);
+
+    for (size_t i{ 0u }; i < len; ++i)
+    {
+        uint32_t propertyCount{ 0u };
+
+        result = vkEnumerateDeviceExtensionProperties( // discover available extensions to instance on system
+            mPhysicalDevices[i],                    // VkPhysicalDevice physicalDevice,             // physical device to query
+            nullptr,                                // const char* pLayerName,                      // nullptr or layer that might provide extensions
+            &propertyCount,                         // uint32_t * pPropertyCount,                   // output - get number of layer properties
+            nullptr                                 // VkExtensionProperties * pProperties);        // nullptr
+        );
+
+        if (result == VK_SUCCESS)
+        {
+            mPhysicalDeviceExtensionProperties[i].resize(propertyCount);
+
+            result = vkEnumerateDeviceExtensionProperties( // discover available extensions to instance on system
+                mPhysicalDevices[i],                // VkPhysicalDevice physicalDevice,             // physical device to query
+                nullptr,                            // const char* pLayerName,                      // nullptr or layer that might provide extensions
+                &propertyCount,                     // uint32_t * pPropertyCount,                   // input - provide number of layer properties
+                mPhysicalDeviceExtensionProperties[i].data() // VkExtensionProperties * pProperties); // array of structures to be filled with info about registered layers
             );
 
             if (result != VK_SUCCESS)
