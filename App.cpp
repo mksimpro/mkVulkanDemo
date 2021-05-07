@@ -45,6 +45,8 @@ VkResult App::init()
     if (result == VK_SUCCESS) result = queryInstanceLayerProperties();
     // Query physical devices
     if (result == VK_SUCCESS) result = queryPhysicalDevices();
+    // Query physical device layers
+    if (result == VK_SUCCESS) result = queryPhysicalDeviceLayerProperties();
     // Query properties of physical devices
     if (result == VK_SUCCESS) result = queryPhysicalDeviceProperties();
     // Query features of physical devices
@@ -148,6 +150,45 @@ VkResult App::queryPhysicalDevices()
                 &mPhysicalDevices[0]                // VkPhysicalDevice * pPhysicalDevices);        // array of handles to physical devices
             );
         }
+    }
+
+    return result;
+}
+
+VkResult App::queryPhysicalDeviceLayerProperties()
+{
+    // Query device layer properties
+
+    VkResult result = VK_SUCCESS;
+
+    const size_t len{ mPhysicalDevices.size() };
+    mPhysicalDeviceLayerProperties.resize(len);
+
+    for (size_t i{ 0u }; i < len; ++i)
+    {
+        uint32_t propertyCount{ 0u };
+
+        result = vkEnumerateDeviceLayerProperties(  // discover available layers to device on system
+            mPhysicalDevices[i],                    // physical device to query
+            &propertyCount,                         // uint32_t * pPropertyCount,                   // output - get number of layer properties
+            nullptr                                 // VkLayerProperties * pProperties);            // nullptr
+        );
+
+        if (result == VK_SUCCESS)
+        {
+            mPhysicalDeviceLayerProperties[i].resize(propertyCount);
+
+            result = vkEnumerateDeviceLayerProperties( // discover available layers to device on system
+                mPhysicalDevices[i],                // physical device to query
+                &propertyCount,                     // uint32_t * pPropertyCount,                   // output - get number of layer properties
+                mPhysicalDeviceLayerProperties[i].data() // VkLayerProperties * pProperties);       // array of structures to be filled with info about registered layers
+            );
+
+            if (result != VK_SUCCESS)
+                break;
+        }
+        else
+            break;
     }
 
     return result;
